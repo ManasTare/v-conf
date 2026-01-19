@@ -92,3 +92,15 @@ The application follows a **microservices-based architecture** with secure RESTf
 ```bash
 git clone https://github.com/ManasTare/v-conf.git
 cd vehicle-configurator
+```
+
+## Contribution Guidelines
+- Fork the repository
+- Create a feature branch
+- Commit changes with clear messages
+- Submit a pull request
+
+---
+
+## License
+This project is developed for academic and educational purposes as part of a C-DAC curriculum.
