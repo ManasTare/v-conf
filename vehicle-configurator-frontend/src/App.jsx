@@ -4,9 +4,7 @@ import { Route, Routes } from 'react-router-dom'
 const App = () => {
   return (
 
-    <Routes>
-      <Route>{}</Route>
-    </Routes>
+    <h1>how are youuu</h1>
   
   )
 }
