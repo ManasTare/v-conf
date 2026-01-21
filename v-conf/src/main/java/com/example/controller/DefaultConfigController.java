@@ -21,5 +21,6 @@ public class DefaultConfigController {
             @RequestParam Integer qty
     ) {
         return service.getDefaultConfiguration(modelId, qty);
+        //Some Comment
     }
 }
