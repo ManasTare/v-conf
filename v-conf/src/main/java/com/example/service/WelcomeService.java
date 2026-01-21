@@ -12,18 +12,15 @@ import java.util.stream.Collectors;
 public class WelcomeService {
 
     private final SegmentRepository segmentRepo;
-    private final ManufacturerRepository manufacturerRepo;
     private final SgMfgMasterRepository sgMfgRepo;
     private final ModelRepository modelRepo;
 
     public WelcomeService(
             SegmentRepository segmentRepo,
-            ManufacturerRepository manufacturerRepo,
             SgMfgMasterRepository sgMfgRepo,
             ModelRepository modelRepo
     ) {
         this.segmentRepo = segmentRepo;
-        this.manufacturerRepo = manufacturerRepo;
         this.sgMfgRepo = sgMfgRepo;
         this.modelRepo = modelRepo;
     }
@@ -40,7 +37,7 @@ public class WelcomeService {
     }
 
     public List<ManufacturerDTO> getManufacturersBySegment(Integer segId) {
-        return sgMfgRepo.findBySeg_Id(segId)
+        return sgMfgRepo.findBySegIdWithManufacturer(segId)
                 .stream()
                 .map(SgMfgMaster::getMfg)
                 .distinct()
@@ -51,7 +48,6 @@ public class WelcomeService {
                 .collect(Collectors.toList());
     }
 
-    // ✅ THIS NOW WORKS
     public List<ModelDTO> getModels(Integer segId, Integer mfgId) {
         return modelRepo.findByMfg_IdAndSeg_Id(mfgId, segId)
                 .stream()
