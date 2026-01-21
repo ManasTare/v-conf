@@ -4,10 +4,10 @@ import { Route, Routes } from 'react-router-dom'
 const App = () => {
   return (
 
-    <Routes>
-      <Route>{}</Route>
-    </Routes>
-  
+    // <Routes>
+    //   <Route>{}</Route>
+    // </Routes>
+  <h1>Hello</h1> 
   )
 }
 
