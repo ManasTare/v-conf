@@ -1,31 +1,29 @@
 package com.example.controller;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 import com.example.models.User;
 import com.example.service.UserService;
+import org.springframework.web.bind.annotation.*;
 
-//@CrossOrigin(origins = "http://localhost:5173")
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/registration")
+@CrossOrigin(origins = "http://localhost:5173") // React dev server
 public class RegisterController {
 
-    @Autowired
-    private UserService service;
-    
-    
- 
+    private final UserService service;
+
+    public RegisterController(UserService service) {
+        this.service = service;
+    }
+
     @GetMapping
     public List<User> getAll() {
         return service.getAllRegistrations();
     }
 
-
     @PostMapping
-    public User save(@RequestBody User registration) {
-        return service.saveRegistration(registration);
+    public User save(@RequestBody User user) {
+        return service.saveRegistration(user);
     }
 }
