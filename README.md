@@ -37,7 +37,8 @@ The application follows a **microservices-based architecture** with secure RESTf
 - MySQL  
 
 ### Frontend
-- React JS  
+- React JS
+- Tailwind CSS
 
 ### DevOps & Tools
 - Docker  
