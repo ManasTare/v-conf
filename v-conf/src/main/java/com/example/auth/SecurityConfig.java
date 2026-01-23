@@ -7,6 +7,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 
 @Configuration
 public class SecurityConfig {
@@ -26,12 +27,16 @@ public class SecurityConfig {
                 sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
+            		
+            		.requestMatchers(EndpointRequest.toAnyEndpoint()).permitAll()
+            		
                 .requestMatchers(
                         "/auth/login",
                         "/api/registration",
                         "/api/registration/**",
                         "/api/invoice",
-                        "/api/invoice/**"
+                        "/api/invoice/**",
+                        "/actuator/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
