@@ -3586,3 +3586,17 @@ java.util.concurrent.TimeoutException
 
 !ENTRY org.springframework.tooling.ls.eclipse.commons 1 0 2026-01-23 13:49:33.982
 !MESSAGE Boot LS startup time from start to initialized: 18566ms
+
+!ENTRY org.springframework.tooling.ls.eclipse.commons 1 0 2026-01-23 13:49:48.519
+!MESSAGE executing callback sts4.classpath.feqyFFuV FAILED
+
+!ENTRY org.springframework.tooling.ls.eclipse.commons 4 0 2026-01-23 13:49:48.522
+!MESSAGE TimeoutException
+!STACK 0
+java.util.concurrent.TimeoutException
+	at java.base/java.util.concurrent.CompletableFuture.timedGet(CompletableFuture.java:1960)
+	at java.base/java.util.concurrent.CompletableFuture.get(CompletableFuture.java:2095)
+	at org.springframework.tooling.ls.eclipse.commons.LSP4ECommandExecutor.executeClientCommand(LSP4ECommandExecutor.java:37)
+	at org.springframework.tooling.jdt.ls.commons.classpath.SendClasspathNotificationsJob.flush(SendClasspathNotificationsJob.java:177)
+	at org.springframework.tooling.jdt.ls.commons.classpath.SendClasspathNotificationsJob.run(SendClasspathNotificationsJob.java:148)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
