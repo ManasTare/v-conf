@@ -22,67 +22,66 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 
 @Component
-public class EmailSender 
-{
+public class EmailSender {
 	@Value("${file.path}")
 	private String path;
-	 public void send(
-	            String toEmail,          // ✅ dynamic user email
-	            String subject,
-	            MultipartFile filename,  // can be null
-	            String messageText
-	    ) {
 
-		final String username = "tsamruddhi16@gmail.com";
-		final String password = "hqixsjpptyvizhae";
- 
+	@Value("${mail.username}")
+	private String username;
+
+	@Value("${mail.password}")
+	private String password;
+
+	public void send(String toEmail, String subject, File attachment, String messageText) {
+
+//		final String username = "tsamruddhi16@gmail.com";
+//		final String password = "hqixsjpptyvizhae";
+
 		Properties props = new Properties();
 		props.put("mail.smtp.auth", "true");
 		props.put("mail.smtp.starttls.enable", "true");
 		props.put("mail.smtp.host", "smtp.gmail.com");
 		props.put("mail.smtp.port", "587");
- 
-		Session session = Session.getInstance(props,
-		  new jakarta.mail.Authenticator() {
+
+		Session session = Session.getInstance(props, new jakarta.mail.Authenticator() {
 			protected PasswordAuthentication getPasswordAuthentication() {
 				return new PasswordAuthentication(username, password);
 			}
-		  });
- 
+		});
 
-        try {
-            MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(username));
-            message.setRecipients(
-                Message.RecipientType.TO,
-                InternetAddress.parse(toEmail)
-            );
-            message.setSubject(subject);
+		try {
+			MimeMessage message = new MimeMessage(session);
+			message.setFrom(new InternetAddress(username));
+			message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+			message.setSubject(subject);
 
-            Multipart multipart = new MimeMultipart();
+			Multipart multipart = new MimeMultipart();
 
-            // ✅ TEXT PART (ALWAYS REQUIRED)
-            MimeBodyPart textPart = new MimeBodyPart();
-            textPart.setText(messageText);
-            multipart.addBodyPart(textPart);
+			// TEXT PART (ALWAYS REQUIRED)
+			MimeBodyPart textPart = new MimeBodyPart();
+			textPart.setText(messageText);
+			multipart.addBodyPart(textPart);
 
-            // ✅ ATTACHMENT PART (ONLY IF FILE EXISTS)
-            if (filename != null && !filename.isEmpty()) {
-                MimeBodyPart filePart = new MimeBodyPart();
-                String filePath = path + File.separator + filename.getOriginalFilename();
-                DataSource source = new FileDataSource(filePath);
-                filePart.setDataHandler(new DataHandler(source));
-                filePart.setFileName(filename.getOriginalFilename());
-                multipart.addBodyPart(filePart);
-            }
+			// ATTACHMENT PART (ONLY IF FILE EXISTS)
+			if (attachment != null && attachment.exists()) {
 
-            message.setContent(multipart);
-            Transport.send(message);
+				MimeBodyPart filePart = new MimeBodyPart();
 
-            System.out.println("✅ Email sent successfully to " + toEmail);
+				DataSource source = new FileDataSource(attachment);
+				filePart.setDataHandler(new DataHandler(source));
+				filePart.setFileName(attachment.getName());
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+				multipart.addBodyPart(filePart);
+
+			}
+
+			message.setContent(multipart);
+			Transport.send(message);
+
+			System.out.println(" Email sent successfully to " + toEmail);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
