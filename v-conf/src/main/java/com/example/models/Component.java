@@ -8,15 +8,30 @@ import java.util.Set;
 @Entity
 @Table(name = "component")
 public class Component {
-    @Id
+	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "comp_id", nullable = false)
-    private Integer id;
+    @Column(name = "comp_id")
+    private Integer compId;
 
     @Column(name = "comp_name")
-    private String compName;
+    private String compName;   // Main component name (Seat Belt, Air Bag)
 
-    @OneToMany(mappedBy = "comp")
+    @Column(name = "type")
+    private String type;  
+    
+    @Column(name = "price")
+    private double price;  
+    
+    
+    public double getPrice() {
+		return price;
+	}
+
+	public void setPrice(double price) {
+		this.price = price;
+	}
+
+	@OneToMany(mappedBy = "comp")
     private Set<AlternateComponentMaster> alternateComponentMasters = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "comp")
@@ -25,15 +40,24 @@ public class Component {
     @OneToMany(mappedBy = "comp")
     private Set<VehicleDetail> vehicleDetails = new LinkedHashSet<>();
 
-    public Integer getId() {
-        return id;
-    }
+    
+    public Integer getCompId() {
+		return compId;
+	}
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
+	public void setCompId(Integer compId) {
+		this.compId = compId;
+	}
 
-    public String getCompName() {
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getCompName() {
         return compName;
     }
 
