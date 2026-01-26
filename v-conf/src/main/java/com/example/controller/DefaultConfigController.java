@@ -18,7 +18,7 @@ public class DefaultConfigController {
     @GetMapping("/{modelId}")
     public DefaultConfigResponseDTO getDefaultConfig(
             @PathVariable Integer modelId,
-            @RequestParam Integer qty
+            @RequestParam(defaultValue = "1") Integer qty
     ) {
         return service.getDefaultConfiguration(modelId, qty);
         //Some Comment
