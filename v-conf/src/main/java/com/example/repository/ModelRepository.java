@@ -22,4 +22,6 @@ public interface ModelRepository extends JpaRepository<Model, Integer> {
         where m.id = :modelId
     """)
     Optional<Model> findByIdWithSegAndMfg(@Param("modelId") Integer modelId);
+    
+    Optional<Model> findById(Integer id);
 }

@@ -14,8 +14,8 @@ public class InvoiceHeader {
     @Column(name = "inv_id", nullable = false)
     private Integer id;
 
-    @Column(name = "amt", nullable = false)
-    private Double amt;
+//    @Column(name = "amt", nullable = false)
+//    private Double amt;
 
     @Column(name = "customer_detail")
     private String customerDetail;
@@ -44,13 +44,13 @@ public class InvoiceHeader {
         this.id = id;
     }
 
-    public Double getAmt() {
-        return amt;
-    }
-
-    public void setAmt(Double amt) {
-        this.amt = amt;
-    }
+//    public Double getAmt() {
+//        return amt;
+//    }
+//
+//    public void setAmt(Double amt) {
+//        this.amt = amt;
+//    }
 
     public String getCustomerDetail() {
         return customerDetail;
