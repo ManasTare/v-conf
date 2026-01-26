@@ -9,10 +9,10 @@ import java.util.Set;
 @Entity
 @Table(name = "invoice_header")
 public class InvoiceHeader {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "inv_id", nullable = false)
-	private Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "inv_id", nullable = false)
+    private Integer id;
 
     @Column(name = "amt", nullable = false)
     private Double amt;
