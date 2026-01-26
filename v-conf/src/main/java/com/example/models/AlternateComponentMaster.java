@@ -7,10 +7,10 @@ import jakarta.persistence.*;
 public class AlternateComponentMaster {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "alt_id", nullable = false)
+    @Column(name = "alt_id")
     private Integer id;
 
-    @Column(name = "delta_price", nullable = false)
+    @Column(name = "delta_price")
     private Double deltaPrice;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -24,7 +24,8 @@ public class AlternateComponentMaster {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "model_id")
     private Model model;
-
+    
+   
     public Integer getId() {
         return id;
     }

@@ -29,9 +29,7 @@ public class SecurityConfig {
                 .requestMatchers(
                         "/auth/login",
                         "/api/registration",
-                        "/api/registration/**",
-                        "/api/invoice",
-                        "/api/invoice/**"
+                        "/api/registration/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

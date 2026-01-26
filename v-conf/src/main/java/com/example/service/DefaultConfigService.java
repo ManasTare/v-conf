@@ -33,7 +33,7 @@ public class DefaultConfigService {
                 vehicleRepo.findDefaultComponents(modelId)
                         .stream()
                         .map(v -> new ComponentDTO(
-                                v.getComp().getId(),
+                                v.getComp().getCompId(),
                                 v.getComp().getCompName()
                         ))
                         .toList();
