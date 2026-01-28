@@ -16,8 +16,31 @@ const Login = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Removed persistent lock check
-    }, []);
+        // Check for token from OAuth2 redirect
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get("token");
+        if (token) {
+            localStorage.setItem("access_token", token);
+            // Optionally decode token to get user details
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                const payload = JSON.parse(jsonPayload);
+                const userObj = {
+                    username: payload.sub, // 'sub' is usually the username/email
+                    companyName: payload.companyName || payload.sub // Fallback
+                };
+                localStorage.setItem("user", JSON.stringify(userObj));
+                navigate("/");
+            } catch (e) {
+                console.error("Failed to decode token", e);
+                navigate("/");
+            }
+        }
+    }, [navigate]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -38,7 +61,7 @@ const Login = () => {
             await authService.login(formData.username, formData.password);
 
             setFailedAttempts(0);
-            navigate("/welcome");
+            navigate("/");
 
         } catch (err) {
             const newAttempts = failedAttempts + 1;
@@ -64,9 +87,8 @@ const Login = () => {
     };
 
     const handleGoogleSSO = () => {
-        // Placeholder for Google SSO redirection
-        // In a real app, this would redirect to backend /auth/google endpoint
-        window.location.href = "/auth/google";
+        // Redirect to Spring Boot OAuth2 authorization endpoint
+        window.location.href = "http://localhost:8080/oauth2/authorization/google";
     };
 
     const handleTwitterSSO = () => {

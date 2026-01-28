@@ -21,7 +21,7 @@ const Welcome = () => {
         quantity: ""
     });
 
-    const [minQty, setMinQty] = useState(1);
+    const [minQty, setMinQty] = useState(null);
     const [errors, setErrors] = useState({});
 
     useEffect(() => {
@@ -31,13 +31,11 @@ const Welcome = () => {
 
     const handleSegmentChange = async (e) => {
         const segmentId = e.target.value;
-        const selectedSegment = segments.find(s => s.id === parseInt(segmentId));
-
         setSelection({ ...selection, segment: segmentId, manufacturer: "", model: "" });
-        // Assuming the segment object has min_qty. If backend DTO is different, check response.
-        // SegmentDTO: id, name, min_qty? Check DTO in previous steps if needed.
-        // If DTO doesn't have min_qty, we might need a default.
-        setMinQty(selectedSegment ? selectedSegment.minQty || 1 : 1); // minQty camelCase
+
+        // Reset minQty when segment changes, as it depends on Model now
+        setMinQty(null);
+
         setManufacturers([]);
         setModels([]);
 
@@ -55,6 +53,7 @@ const Welcome = () => {
         const mfgId = e.target.value;
         setSelection({ ...selection, manufacturer: mfgId, model: "" });
         setModels([]);
+        setMinQty(null); // Reset minQty
 
         if (mfgId) {
             try {
@@ -67,7 +66,17 @@ const Welcome = () => {
     };
 
     const handleModelChange = (e) => {
-        setSelection({ ...selection, model: e.target.value });
+        const modelId = e.target.value;
+        const selectedModel = models.find(m => m.id === parseInt(modelId));
+
+        setSelection({ ...selection, model: modelId });
+
+        // Set minQty based on selected Model
+        if (selectedModel) {
+            setMinQty(selectedModel.minQty || 1); // Default to 1 if missing, but DB should have it
+        } else {
+            setMinQty(null);
+        }
     };
 
     const handleQuantityChange = (e) => {
@@ -84,13 +93,29 @@ const Welcome = () => {
 
         if (!selection.quantity) {
             newErrors.quantity = "Required";
-        } else if (parseInt(selection.quantity) < minQty) {
-            newErrors.quantity = `Minimum quantity for this segment is ${minQty}`;
+        } else if (minQty !== null && parseInt(selection.quantity) < minQty) {
+            newErrors.quantity = `Minimum quantity for this model is ${minQty}`;
         }
 
         setErrors(newErrors);
 
         if (Object.keys(newErrors).length === 0) {
+            // Save selection to local storage so next pages can access model details/prices
+            const fullSelection = {
+                segment: segments.find(s => s.id == selection.segment),
+                manufacturer: manufacturers.find(m => m.id == selection.manufacturer),
+                model: models.find(m => m.id == selection.model),
+                quantity: parseInt(selection.quantity)
+            };
+
+            // We need to import vehicleService if not already imported, but for now let's just use localStorage directly 
+            // or better, use the service helper if I can import it. 
+            // Let's rely on the service helper for consistency.
+            // But wait, I need to add the import first. 
+            // For this specific 'replace' block, I can't add imports at the top easily if they are not there.
+            // I will use localStorage directly here to be safe, or I will do a multi-replace to add import.
+            localStorage.setItem("current_order_selection", JSON.stringify(fullSelection));
+
             // Navigate to Configurator Page with params
             navigate(`/configurator/${selection.model}?qty=${selection.quantity}`);
         }
@@ -146,16 +171,16 @@ const Welcome = () => {
                             <Input
                                 id="quantity"
                                 type="number"
-                                label={`Quantity (Min: ${minQty})`}
+                                label={minQty ? `Quantity (Min: ${minQty})` : "Quantity"}
                                 value={selection.quantity}
                                 onChange={handleQuantityChange}
-                                disabled={!selection.segment}
+                                disabled={!selection.model || minQty === null}
                                 error={errors.quantity}
-                                min={minQty}
+                                min={minQty || 1}
                             />
-                            {selection.segment && (
+                            {selection.model && minQty !== null && (
                                 <p className="text-xs text-slate-500 mt-1">
-                                    * Minimum order quantity for this segment is {minQty}
+                                    * Minimum order quantity for this model is {minQty}
                                 </p>
                             )}
                         </div>

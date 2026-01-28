@@ -8,7 +8,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Welcome from "./pages/Welcome";
 import DefaultConfig from "./pages/DefaultConfig";
-import Configure from "./pages/Configure";
+import ModifyConfig from "./pages/ModifyConfig";
 import Invoice from "./pages/Invoice";
 import ExcelUpload from "./pages/ExcelUpload";
 import ScrollToTop from "./components/ScrollToTop";
@@ -23,7 +23,11 @@ function App() {
           <Route path="contact" element={<Contact />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
-          <Route path="welcome" element={<Welcome />} />
+          <Route path="welcome" element={
+            <ProtectedRoute>
+              <Welcome />
+            </ProtectedRoute>
+          } />
           <Route path="configurator/:modelId" element={
             <ProtectedRoute>
               <DefaultConfig />
@@ -31,7 +35,7 @@ function App() {
           } />
           <Route path="configure/:id" element={
             <ProtectedRoute>
-              <Configure />
+              <ModifyConfig />
             </ProtectedRoute>
           } />
           <Route path="invoice" element={
@@ -44,7 +48,6 @@ function App() {
               <ExcelUpload />
             </ProtectedRoute>
           } />
-          {/* Add more routes here as we build them */}
         </Route>
       </Routes>
     </BrowserRouter>

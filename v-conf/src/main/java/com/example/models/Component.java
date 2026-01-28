@@ -16,7 +16,7 @@ public class Component {
     @Column(name = "comp_name")
     private String compName;   // Main component name (Seat Belt, Air Bag)
 
-    @Column(name = "type")
+    @Column(name = "comp_type")
     private String type;  
     
     @Column(name = "price")

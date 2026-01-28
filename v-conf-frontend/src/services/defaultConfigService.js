@@ -1,11 +1,9 @@
 import api from './api';
 
 export const defaultConfigService = {
-    // GET /api/default-config/{modelId}?qty=X
-    getDefaultConfig: async (modelId, qty) => {
-        const response = await api.get(`/default-config/${modelId}`, {
-            params: { qty }
-        });
+    // GET /api/default-config/conf/{modelId}
+    getDefaultConfig: async (modelId) => {
+        const response = await api.get(`/default-config/conf/${modelId}`);
         return response.data;
     }
 };

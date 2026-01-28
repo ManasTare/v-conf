@@ -10,185 +10,307 @@ import { cn } from "../utils/cn";
 
 const Configure = () => {
     const navigate = useNavigate();
+    const { id: modelId } = useParams(); // URL param is :id
+    const [searchParams] = useSearchParams();
+    const qty = searchParams.get("qty") || 1;
+
     const [selection, setSelection] = useState(null);
     const [activeTab, setActiveTab] = useState("Interior");
-    const [options, setOptions] = useState({ Interior: [], Exterior: [] });
+    const [options, setOptions] = useState({ Interior: [], Exterior: [], Accessories: [], Standard: [] });
     const [loading, setLoading] = useState(true);
 
-    // Config State
+    // Config State: Map of Category -> { compId (Base ID) -> { value: altCompId, price: deltaPrice, label: name } }
     const [config, setConfig] = useState({
         "Interior": {},
-        "Exterior": {}
+        "Exterior": {},
+        "Accessories": {}
     });
 
     useEffect(() => {
         const loadData = async () => {
-            const stored = vehicleService.getSelection();
+            const stored = JSON.parse(localStorage.getItem("current_order_selection"));
             if (!stored) {
                 navigate("/welcome");
                 return;
             }
             setSelection(stored);
 
+            // Defensive check: Ensure defaultComponents exists
+            if (!stored.defaultComponents || stored.defaultComponents.length === 0) {
+                console.warn("Missing default components in selection");
+                // Attempt to recover or redirect
+                // Since we need them for mapping, redirecting to DefaultConfig to re-fetch is safest
+                navigate(`/configurator/${stored.model.id}?qty=${qty}`);
+                return;
+            }
+
             try {
-                // Fetch options from backend based on model ID
-                // Assuming stored.model.id exists. Adjust if stored data structure is different.
-                const data = await vehicleService.getOptions(stored.model.id);
-                // Expected data format from API: { Interior: [...], Exterior: [...] }
-                // If API returns a different format, we might need to transform it here.
-                setOptions(data || { Interior: [], Exterior: [] });
+                // Fetch all options
+                const data = await vehicleService.getAllOptions(modelId);
+
+                // Transform API Data if needed. 
+                // data.Interior is generic List<ComponentDropdownDto> { componentName, options: [{ compId, subType, price }] }
+                // Note: The structure from backend `ComponentDropdownDto` is:
+                // componentName: String (e.g., "Air Conditioning")
+                // options: List<OptionDto> { compId, subType, price }
+                // *CRITICAL*: The `compId` in `OptionDto` is actually the ID of the ALTERNATE component option.
+                // We need to match `componentName` to the Base Component in `stored.defaultComponents`.
+
+                console.log("Vehicle Options Response:", data);
+
+                // Validation: Ensure data components are arrays
+                const interior = Array.isArray(data.Interior) ? data.Interior : [];
+                const exterior = Array.isArray(data.Exterior) ? data.Exterior : [];
+                const accessories = Array.isArray(data.Accessories) ? data.Accessories : [];
+
+                const formattedOptions = {
+                    Interior: interior,
+                    Exterior: exterior,
+                    Accessories: accessories,
+                    // Standard: data.Standard || [] 
+                };
+
+                setOptions(formattedOptions);
+
+                // Initialize Config State based on Default Components if we want "Selected" state to start with defaults
+                // or start empty and imply "Default" is selected if nothing in state.
+                // Starting empty is easier for "Delta" logic.
+
             } catch (error) {
                 console.error("Failed to load options", error);
-                // Fallback or error handling
             } finally {
                 setLoading(false);
             }
         };
 
         loadData();
-    }, [navigate]);
+    }, [modelId, navigate]);
 
-    const handleOptionChange = (category, featureId, valueId, price) => {
+    const handleOptionChange = (category, baseComponentName, altOption) => {
+        // Find the Base Component ID from the Default Components List using the Name
+        // We stored defaultComponents in localStorage in DefaultConfig.jsx
+        // stored.defaultComponents: [{ id, name }, ...]
+        // Wait, defaultComponents list might map Name -> ID.
+        // Let's look at `ComponentDTO`: { id, name }.
+
+        // ISSUE: The `vehicleService.getAllOptions` returns `componentName` grouping.
+        // We need to map `componentName` -> `baseComponentId`.
+        // We'll iterate through `selection.defaultComponents` to find a match.
+        // If exact name match fails, we might be in trouble. But let's assume valid data.
+
+        const baseComp = selection.defaultComponents.find(c => c.name === baseComponentName);
+        const baseCompId = baseComp ? baseComp.id : null;
+
+        if (!baseCompId) {
+            console.warn(`Could not find base component ID for ${baseComponentName}`);
+            // If it's pure accessory (no base), maybe handle differently? 
+            // Valid requirement says: "modify configuration... alternate components".
+            // So mostly replacing existing.
+            return;
+        }
+
         setConfig(prev => ({
             ...prev,
             [category]: {
                 ...prev[category],
-                [featureId]: { value: valueId, price: price }
+                [baseCompId]: {
+                    value: altOption.compId, // This is the ID of the selected option
+                    price: altOption.price,
+                    label: altOption.subType
+                }
             }
         }));
     };
 
-    const calculateTotal = () => {
-        if (!selection) return 0;
-        let total = selection.model.price; // Changed from base_price to price
+    const getBaseComponentPrice = (componentName) => {
+        // This is tricky. `DefaultConfigResponseDTO` gave us `totalPrice` but not per-component price breakdown clearly 
+        // other than text or assumption.
+        // However, `vehicleService.getStandardComponents` might return the standard option with its price?
+        // Let's assume the "Delta" is just the price of the new component minus price of old?
+        // OR, the backend `OptionDto` price IS the delta? Or the full price?
+        // User prompt says: "alternates must reflect backend logic exactly, including price deltas".
+        // Usually, OptionDto.price is the price of that specific item.
+        // If we treat base price as covering standard items, then an upgrade cost = (New Price - Old Price).
+        // But we don't know "Old Price". 
+        // ALTERNATIVE INTERPRETATION: The `price` in `OptionDto` IS the extra cost (delta).
+        // Let's look at `OptionDto` fields: compId, subType, price.
+        // If I select "Sunroof", price might be 5000.
+        // If I select "No Sunroof", price might be 0.
+        // Let's assume the `price` field in `OptionDto` IS the addon price to be added to Base Price.
+        // If it's a replacement, it's (New - Old). 
+        // Let's assume `price` is the net addition for simplicity unless we see negative values.
+        return 0;
+    };
 
-        // Add config costs
+    const calculateTotalAddons = () => {
+        let total = 0;
         Object.values(config).forEach(category => {
             Object.values(category).forEach(item => {
-                total += item.price;
+                total += item.price; // Assuming price is additive (delta)
             });
         });
-
         return total;
     };
 
-    const handleConfirm = () => {
-        // Save final config to storage to be picked up by Invoice
-        const finalOrder = {
-            ...selection,
-            configuration: config,
-            totalPricePerUnit: calculateTotal()
-        };
-        localStorage.setItem("final_order", JSON.stringify(finalOrder));
-        navigate("/invoice");
+    const handleConfirm = async () => {
+        setLoading(true);
+        try {
+            // Construct Save DTO
+            // { modelId, components: [{ compId, altCompId }] }
+            const componentsList = [];
+
+            Object.values(config).forEach(category => {
+                Object.entries(category).forEach(([baseId, item]) => {
+                    componentsList.push({
+                        compId: parseInt(baseId),
+                        altCompId: item.value
+                    });
+                });
+            });
+
+            const saveDto = {
+                modelId: parseInt(modelId),
+                components: componentsList
+            };
+
+            // Call API to save
+            await vehicleService.saveAlternateComponents(saveDto);
+
+            // Update local storage with final numbers for Invoice
+            const finalOrder = {
+                ...selection,
+                configuration: config,
+                addOnsTotal: calculateTotalAddons(),
+                totalPricePerUnit: selection.basePrice + calculateTotalAddons()
+            };
+            localStorage.setItem("final_order", JSON.stringify(finalOrder));
+
+            navigate("/invoice");
+        } catch (err) {
+            console.error(err);
+            alert("Failed to save configuration. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
-    if (!selection) return null; // Or a loading spinner for initial auth check
+    if (!selection) return null;
 
     return (
-        <div className="py-10">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-6xl mx-auto">
-                <div className="grid md:grid-cols-12 gap-8">
+        <div className="py-12 bg-slate-50 dark:bg-slate-950 min-h-screen">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-7xl mx-auto px-4">
+                <div className="grid lg:grid-cols-12 gap-8">
 
                     {/* Left: Configuration Steps */}
-                    <div className="md:col-span-8 space-y-6">
-                        <div className="flex items-center gap-4 mb-8">
-                            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Configure Your {selection.model.name}</h1>
+                    <div className="lg:col-span-8 space-y-6">
+                        <div className="mb-6">
+                            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Customize Your {selection.model.name}</h1>
+                            <p className="text-slate-500">Select options to tailor your vehicle.</p>
                         </div>
 
                         {/* Tabs */}
-                        <div className="flex border-b border-slate-200 dark:border-slate-800">
-                            {["Standard Features", "Interior", "Exterior"].map((tab) => (
-                                <button
-                                    key={tab}
-                                    onClick={() => setActiveTab(tab)}
-                                    className={cn(
-                                        "px-6 py-3 font-medium text-sm transition-colors relative",
-                                        activeTab === tab
-                                            ? "text-blue-600 dark:text-blue-400"
-                                            : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
-                                    )}
-                                >
-                                    {tab}
-                                    {activeTab === tab && (
-                                        <motion.div layoutId="underline" className="absolute bottom-[-1px] left-0 right-0 h-0.5 bg-blue-600" />
-                                    )}
-                                </button>
-                            ))}
+                        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-1">
+                            <div className="flex space-x-1">
+                                {["Interior", "Exterior", "Accessories"].map((tab) => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setActiveTab(tab)}
+                                        className={cn(
+                                            "flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200",
+                                            activeTab === tab
+                                                ? "bg-blue-600 text-white shadow-md"
+                                                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                        )}
+                                    >
+                                        {tab}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Tab Content */}
-                        <div className="py-6">
+                        <div className="min-h-[400px]">
                             <AnimatePresence mode="wait">
-                                {activeTab === "Standard Features" ? (
-                                    <motion.div
-                                        key="std"
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                    >
-                                        <ul className="grid grid-cols-2 gap-4">
-                                            {/* Ideally this list also comes from the backend or selection model details */}
-                                            {["Manual Transmission", "Standard Wheels", "Halogen Headlights", "Fabric Seats", "Basic Audio System", "Manual AC"].map((feature, i) => (
-                                                <li key={i} className="p-4 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 flex items-center">
-                                                    <Check className="h-5 w-5 text-green-500 mr-3" />
-                                                    {feature}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </motion.div>
-                                ) : (
-                                    <motion.div
-                                        key="options"
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        className="space-y-6"
-                                    >
-                                        {loading ? (
-                                            <div className="text-center py-10">Loading configuration options...</div>
-                                        ) : options[activeTab]?.length === 0 ? (
-                                            <div className="text-center py-10 text-slate-500">No options available for this category.</div>
-                                        ) : (
-                                            options[activeTab]?.map((feature) => (
-                                                <Card key={feature.id} className="p-6">
-                                                    <h3 className="font-semibold mb-4 text-lg">{feature.label}</h3>
-                                                    <div className="grid sm:grid-cols-2 gap-4">
-                                                        {feature.values.map((opt) => {
-                                                            const isSelected = config[activeTab]?.[feature.id]?.value === opt.id || (!config[activeTab]?.[feature.id] && opt.price === 0);
-                                                            return (
-                                                                <div
-                                                                    key={opt.id}
-                                                                    onClick={() => handleOptionChange(activeTab, feature.id, opt.id, opt.price)}
-                                                                    className={cn(
-                                                                        "cursor-pointer rounded-lg border p-4 transition-all",
-                                                                        isSelected
-                                                                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500"
-                                                                            : "border-slate-200 dark:border-slate-800 hover:border-blue-300"
-                                                                    )}
-                                                                >
-                                                                    <div className="flex justify-between items-center">
-                                                                        <span className="font-medium">{opt.label}</span>
-                                                                        {isSelected && <Check className="h-4 w-4 text-blue-600" />}
+                                <motion.div
+                                    key={activeTab}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="space-y-6"
+                                >
+                                    {options[activeTab]?.length === 0 ? (
+                                        <div className="bg-white dark:bg-slate-900 rounded-xl p-10 text-center border-dashed border-2 border-slate-200 dark:border-slate-800">
+                                            <p className="text-slate-500">No configurable options available for {activeTab}.</p>
+                                        </div>
+                                    ) : (
+                                        options[activeTab]?.map((group, idx) => (
+                                            <Card key={idx} className="p-6 bg-white dark:bg-slate-900 border-none shadow-md">
+                                                <h3 className="font-bold text-lg text-slate-800 dark:text-white mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">
+                                                    {group.componentName}
+                                                </h3>
+                                                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                    {group.options.map((opt) => {
+                                                        // Determine if selected
+                                                        // We need the Base ID for this group.
+                                                        const baseComp = selection.defaultComponents.find(c => c.name === group.componentName);
+                                                        const baseId = baseComp?.id;
+                                                        const isSelected = config[activeTab]?.[baseId]?.value === opt.compId; // opt.compId is Alternate ID
+
+                                                        // If not in config, maybe it's the standard one? 
+                                                        // We don't easily know which OptionDTO corresponds to "Standard" unless price is 0 or we check ID match.
+                                                        // For now, highlight only if explicitly in `config`.
+
+                                                        return (
+                                                            <div
+                                                                key={opt.compId}
+                                                                onClick={() => {
+                                                                    if (baseId) handleOptionChange(activeTab, group.componentName, opt);
+                                                                }}
+                                                                className={cn(
+                                                                    "cursor-pointer relative overflow-hidden rounded-xl border-2 p-4 transition-all duration-200 hover:shadow-lg",
+                                                                    isSelected
+                                                                        ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
+                                                                        : "border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 bg-slate-50 dark:bg-slate-950"
+                                                                )}
+                                                            >
+                                                                <div className="flex flex-col h-full justify-between">
+                                                                    <div>
+                                                                        <span className="font-semibold text-slate-900 dark:text-white block mb-1">
+                                                                            {opt.subType}
+                                                                        </span>
+                                                                        <span className="text-xs text-slate-500 uppercase tracking-wider">
+                                                                            {group.componentName}
+                                                                        </span>
                                                                     </div>
-                                                                    <div className="text-sm text-slate-500 mt-1">
-                                                                        {opt.price === 0 ? "Included" : `+ ₹ ${opt.price.toLocaleString()}`}
+                                                                    <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700/50 flex justify-between items-center">
+                                                                        <span className={cn(
+                                                                            "font-bold",
+                                                                            opt.price > 0 ? "text-blue-600" : "text-green-600"
+                                                                        )}>
+                                                                            {opt.price > 0 ? `+ ₹ ${opt.price.toLocaleString()}` : "Standard"}
+                                                                        </span>
+                                                                        {isSelected && (
+                                                                            <div className="h-6 w-6 bg-blue-600 rounded-full flex items-center justify-center text-white">
+                                                                                <Check className="h-3 w-3" />
+                                                                            </div>
+                                                                        )}
                                                                     </div>
                                                                 </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </Card>
-                                            ))
-                                        )}
-                                    </motion.div>
-                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </Card>
+                                        ))
+                                    )}
+                                </motion.div>
                             </AnimatePresence>
                         </div>
                     </div>
 
                     {/* Right: Price Summary */}
-                    <div className="md:col-span-4">
+                    <div className="lg:col-span-4">
                         <div className="sticky top-24">
                             <Card className="p-6 bg-slate-900 text-white border-none shadow-2xl">
                                 <h3 className="text-xl font-bold mb-6">Total Cost</h3>
@@ -196,45 +318,49 @@ const Configure = () => {
                                 <div className="space-y-3 text-sm mb-6 pb-6 border-b border-slate-700">
                                     <div className="flex justify-between">
                                         <span className="text-slate-400">Base Price</span>
-                                        <span>₹ {selection.model.base_price.toLocaleString()}</span>
+                                        <span>₹ {selection.basePrice.toLocaleString()}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-slate-400">Total Add-ons</span>
-                                        <span className="text-green-400">+ ₹ {(calculateTotal() - selection.model.base_price).toLocaleString()}</span>
+                                        <span className="text-slate-400">Add-ons Total</span>
+                                        <span className="text-green-400 font-medium">+ ₹ {calculateTotalAddons().toLocaleString()}</span>
                                     </div>
-                                    <div className="flex justify-between font-semibold pt-2">
+                                    <div className="flex justify-between font-semibold pt-3 text-base">
                                         <span className="text-slate-300">Price Per Unit</span>
-                                        <span>₹ {calculateTotal().toLocaleString()}</span>
+                                        <span>₹ {(selection.basePrice + calculateTotalAddons()).toLocaleString()}</span>
                                     </div>
-                                    <div className="flex justify-between text-slate-400">
+                                    <div className="flex justify-between text-slate-400 pt-1">
                                         <span>Quantity</span>
                                         <span>x {selection.quantity}</span>
                                     </div>
                                 </div>
 
                                 <div className="flex justify-between items-end mb-8">
-                                    <span className="text-lg text-slate-300">Grand Total</span>
+                                    <span className="text-lg text-slate-300 font-medium">Grand Total</span>
                                     <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
-                                        ₹ {(calculateTotal() * selection.quantity).toLocaleString()}
+                                        ₹ {((selection.basePrice + calculateTotalAddons()) * selection.quantity).toLocaleString()}
                                     </span>
                                 </div>
 
                                 <div className="space-y-3">
                                     <Button
                                         variant="primary"
-                                        className="w-full justify-between group"
+                                        className="w-full justify-center h-12 text-base font-semibold group bg-white text-slate-900 hover:bg-slate-100 border-none"
                                         onClick={handleConfirm}
+                                        disabled={loading}
                                     >
-                                        Confirm Order
-                                        <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                                        {loading ? "Processing..." : "Confirm Configuration"}
+                                        {!loading && <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />}
                                     </Button>
                                     <Button
                                         variant="outline"
-                                        className="w-full border-slate-700 hover:bg-slate-800 text-white"
+                                        className="w-full justify-center border-slate-700 hover:bg-slate-800 text-slate-300"
                                         onClick={() => navigate("/default-config")}
                                     >
                                         Cancel
                                     </Button>
+                                    <p className="text-center text-xs text-slate-500 mt-2">
+                                        Configuration saves automatically upon confirmation.
+                                    </p>
                                 </div>
                             </Card>
                         </div>

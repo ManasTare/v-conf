@@ -53,7 +53,7 @@ const Home = () => {
                     </h1>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-12">
-                        <Link to="/configure/new">
+                        <Link to="/welcome">
                             <Button variant="outline" size="lg" className="rounded-full px-8 border-white/40 text-white hover:bg-white hover:text-slate-900 backdrop-blur-sm min-w-[180px] h-14 text-lg">
                                 Start Configuring
                             </Button>
