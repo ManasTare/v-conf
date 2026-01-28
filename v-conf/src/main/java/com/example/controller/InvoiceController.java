@@ -1,32 +1,27 @@
 package com.example.controller;
 
-import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import com.example.models.InvoiceHeader;
-import com.example.service.InvoiceService;
+import com.example.dto.InvoiceRequestDTO;
+import com.example.service.Invoicemanager;
 
 @RestController
 @RequestMapping("/api/invoice")
 public class InvoiceController {
 
-	private final InvoiceService invoiceservice;
-	
-	public InvoiceController(InvoiceService invoiceService) // construction injection
-	{
-		this.invoiceservice=invoiceService;
-		
-		
-	}
-	
-	@PostMapping // creates invoice
-	public InvoiceHeader createINvoice(@RequestBody InvoiceHeader invoice)
-	{
-		return invoiceservice.saveInvoice(invoice);
-	}
-	
-	@GetMapping("/{id}")
-	public InvoiceHeader getInvoice(@PathVariable Integer id)
-	{
-		return invoiceservice.getInvoice(id);
-	}
+    @Autowired
+    private Invoicemanager invoiceService;
+
+    @PostMapping("/confirm")
+    public ResponseEntity<String> confirmOrder(
+            @RequestBody InvoiceRequestDTO dto) {
+
+        invoiceService.generateInvoice(dto);
+        return ResponseEntity.ok("Invoice generated");
+    }
 }

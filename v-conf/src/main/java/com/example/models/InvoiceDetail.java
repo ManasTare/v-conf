@@ -17,8 +17,20 @@ public class InvoiceDetail {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inv_id")
     private InvoiceHeader inv;
+    
 
-    public Integer getId() {
+    @Column(name = "comp_price", nullable = false)
+    private Double compPrice;
+
+    public Double getCompPrice() {
+		return compPrice;
+	}
+
+	public void setCompPrice(Double compPrice) {
+		this.compPrice = compPrice;
+	}
+
+	public Integer getId() {
         return id;
     }
 

@@ -9,5 +9,5 @@ public interface UserManager {
 	
 	String login(LoginRequest request);
 	
-//	String Outh(String email);
+	String Outh(String email);
 }

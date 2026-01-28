@@ -12,7 +12,7 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         rewrite: (path) => {
-          if (path.startsWith('/api/auth')) {
+          if (path.startsWith('/api/auth') || path.startsWith('/api/vehicle')) {
             return path.replace(/^\/api/, '');
           }
           return path;

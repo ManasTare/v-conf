@@ -1,27 +1,40 @@
 package com.example.models;
 
-import jakarta.persistence.*;
-
 import java.time.LocalDate;
-import java.util.LinkedHashSet;
-import java.util.Set;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "invoice_header")
 public class InvoiceHeader {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "inv_id", nullable = false)
+    @Column(name = "inv_id")
     private Integer id;
 
-//    @Column(name = "amt", nullable = false)
-//    private Double amt;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    @Column(name = "customer_detail")
-    private String customerDetail;
+    @ManyToOne
+    @JoinColumn(name = "model_id", nullable = false)
+    private Model model;
 
-    @Column(name = "inv_date")
-    private LocalDate invDate;
+    @Column(name = "qty", nullable = false)
+    private Integer qty;
+
+    @Column(name = "base_amt", nullable = false)
+    private Double baseAmt;
 
     @Column(name = "tax", nullable = false)
     private Double tax;
@@ -29,75 +42,96 @@ public class InvoiceHeader {
     @Column(name = "total_amt", nullable = false)
     private Double totalAmt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "model_id")
-    private Model model;
+//    @Column(name = "amt", nullable = false)
+//    private Double amt;
 
-    @OneToMany(mappedBy = "inv")
-    private Set<InvoiceDetail> invoiceDetails = new LinkedHashSet<>();
+    @Column(name = "inv_date")
+    private LocalDate invDate;
 
     public Integer getId() {
-        return id;
-    }
+		return id;
+	}
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
+	public void setId(Integer id) {
+		this.id = id;
+	}
 
-//    public Double getAmt() {
-//        return amt;
-//    }
-//
-//    public void setAmt(Double amt) {
-//        this.amt = amt;
-//    }
+	public User getUser() {
+		return user;
+	}
 
-    public String getCustomerDetail() {
-        return customerDetail;
-    }
+	public void setUser(User user) {
+		this.user = user;
+	}
 
-    public void setCustomerDetail(String customerDetail) {
-        this.customerDetail = customerDetail;
-    }
+	public Model getModel() {
+		return model;
+	}
 
-    public LocalDate getInvDate() {
-        return invDate;
-    }
+	public void setModel(Model model) {
+		this.model = model;
+	}
 
-    public void setInvDate(LocalDate invDate) {
-        this.invDate = invDate;
-    }
+	public Integer getQty() {
+		return qty;
+	}
 
-    public Double getTax() {
-        return tax;
-    }
+	public void setQty(Integer qty) {
+		this.qty = qty;
+	}
 
-    public void setTax(Double tax) {
-        this.tax = tax;
-    }
+	public Double getBaseAmt() {
+		return baseAmt;
+	}
 
-    public Double getTotalAmt() {
-        return totalAmt;
-    }
+	public void setBaseAmt(Double baseAmt) {
+		this.baseAmt = baseAmt;
+	}
 
-    public void setTotalAmt(Double totalAmt) {
-        this.totalAmt = totalAmt;
-    }
+	public Double getTax() {
+		return tax;
+	}
 
-    public Model getModel() {
-        return model;
-    }
+	public void setTax(Double tax) {
+		this.tax = tax;
+	}
 
-    public void setModel(Model model) {
-        this.model = model;
-    }
+	public Double getTotalAmt() {
+		return totalAmt;
+	}
 
-    public Set<InvoiceDetail> getInvoiceDetails() {
-        return invoiceDetails;
-    }
+	public void setTotalAmt(Double totalAmt) {
+		this.totalAmt = totalAmt;
+	}
 
-    public void setInvoiceDetails(Set<InvoiceDetail> invoiceDetails) {
-        this.invoiceDetails = invoiceDetails;
-    }
+	public LocalDate getInvDate() {
+		return invDate;
+	}
 
+	public void setInvDate(LocalDate invDate) {
+		this.invDate = invDate;
+	}
+
+	public InvoiceStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(InvoiceStatus status) {
+		this.status = status;
+	}
+
+	public String getCustomerDetail() {
+		return customerDetail;
+	}
+
+	public void setCustomerDetail(String customerDetail) {
+		this.customerDetail = customerDetail;
+	}
+
+	@Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private InvoiceStatus status;
+
+    @Column(name = "customer_detail")
+    private String customerDetail;
 }

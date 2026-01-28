@@ -56,13 +56,13 @@ public class UserManagerImpl implements UserManager {
 		
 	}
 
-//	@Override
-//	public String Outh(String email) {
-//		// TODO Auto-generated method stub
-//		String token=jwtUtil.generateToken(email);
-//		
-//		return token;
-//	}
+	@Override
+	public String Outh(String email) {
+		// TODO Auto-generated method stub
+		String token=jwtUtil.generateToken(email);
+
+		return token;
+	}
 	
 
 }

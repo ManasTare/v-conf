@@ -1,39 +1,66 @@
 import api from './api';
 
 export const vehicleService = {
-    getSegments: async () => {
-        const response = await api.get('/vehicles/segments');
+    // GET /vehicle/{modelId}/standard
+    getStandardComponents: async (modelId) => {
+        const response = await api.get(`/vehicle/${modelId}/standard`);
         return response.data;
     },
 
-    getManufacturers: async (segmentId) => {
-        const response = await api.get(`/vehicles/manufacturers?segment=${segmentId}`);
+    // GET /vehicle/{modelId}/interior
+    getInteriorComponents: async (modelId) => {
+        const response = await api.get(`/vehicle/${modelId}/interior`);
         return response.data;
     },
 
-    getModels: async (manufacturerId, segmentId) => {
-        const response = await api.get(`/vehicles/models?manufacturer=${manufacturerId}&segment=${segmentId}`);
+    // GET /vehicle/{modelId}/exterior
+    getExteriorComponents: async (modelId) => {
+        const response = await api.get(`/vehicle/${modelId}/exterior`);
         return response.data;
     },
 
-    getModelDetails: async (modelId) => {
-        const response = await api.get(`/vehicles/models/${modelId}`);
+    // GET /vehicle/{modelId}/accessories
+    getAccessoryComponents: async (modelId) => {
+        const response = await api.get(`/vehicle/${modelId}/accessories`);
         return response.data;
     },
 
-    // New method to get configuration options (interior, exterior, etc.)
-    getOptions: async (modelId) => {
-        const response = await api.get(`/vehicles/models/${modelId}/options`);
+    // Helper to fetch all options at once
+    getAllOptions: async (modelId) => {
+        const [interior, exterior, accessories, standard] = await Promise.all([
+            vehicleService.getInteriorComponents(modelId),
+            vehicleService.getExteriorComponents(modelId),
+            vehicleService.getAccessoryComponents(modelId),
+            vehicleService.getStandardComponents(modelId)
+        ]);
+
+        return {
+            Interior: interior,
+            Exterior: exterior,
+            Accessories: accessories,
+            Standard: standard
+        };
+    },
+
+    // POST /api/alternate-component/save
+    // DTO: { modelId: Integer, components: [{ compId: Integer, altCompId: Integer }] }
+    saveAlternateComponents: async (alternateComponentSaveDTO) => {
+        const response = await api.post('/alternate-component/save', alternateComponentSaveDTO);
         return response.data;
     },
 
-    // Store initial selection to local/session storage or context
+    // Local Storage Helpers
     saveSelection: (selection) => {
         localStorage.setItem('current_order_selection', JSON.stringify(selection));
     },
 
     getSelection: () => {
-        const stored = localStorage.getItem('current_order_selection');
-        return stored ? JSON.parse(stored) : null;
+        const data = localStorage.getItem('current_order_selection');
+        return data ? JSON.parse(data) : null;
+    },
+
+    clearSelection: () => {
+        localStorage.removeItem('current_order_selection');
+        localStorage.removeItem('final_order');
     }
 };

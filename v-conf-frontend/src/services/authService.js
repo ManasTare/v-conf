@@ -11,8 +11,35 @@ export const authService = {
             const token = response.data;
             if (token) {
                 localStorage.setItem('access_token', token);
-                // The backend doesn't return user object in login response, so we might need to decode token or fetch user details separately.
-                // For now, we'll store what we have.
+
+                // Keep existing user structure or create new one from token
+                // Try to decode JWT to get User ID if available
+                try {
+                    const base64Url = token.split('.')[1];
+                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    }).join(''));
+                    const payload = JSON.parse(jsonPayload);
+
+                    // Assuming payload has userId or id. 
+                    // Adjust key based on backend JWT structure.
+                    const userId = payload.userId || payload.id || payload.sub; // sub is usually username
+
+                    // We also have username from the login request 'username' arg
+                    const userObj = {
+                        username: username,
+                        id: userId && !isNaN(parseInt(userId)) ? parseInt(userId) : 1, // Fallback to 1 if not numeric
+                        // Store other claims if useful
+                        companyName: payload.companyName || username
+                    };
+
+                    localStorage.setItem('user', JSON.stringify(userObj));
+                } catch (e) {
+                    // Fallback if not JWT or decode fails
+                    const userObj = { username: username, id: 1 };
+                    localStorage.setItem('user', JSON.stringify(userObj));
+                }
             }
             return response.data;
         } catch (error) {

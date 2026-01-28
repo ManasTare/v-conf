@@ -35,8 +35,8 @@ class UserServiceImplTest {
     void getAllRegistrations_shouldReturnAllUsers() {
 
         // Arrange
-    	 User u1 = new User();
-    	  User u2 = new User();
+        User u1 = new User();
+        User u2 = new User();
 
         when(repository.findAll()).thenReturn(List.of(u1, u2));
 
