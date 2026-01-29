@@ -1,0 +1,100 @@
+
+> v-conf-frontend@0.0.0 lint
+> eslint .
+
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\components\BrandMarquee.jsx
+  5:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\components\Footer.jsx
+   7:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                no-unused-vars
+  12:11  error  'currentYear' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\components\Navbar.jsx
+   6:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  10:10  error  'cn' is defined but never used. Allowed unused vars must match /^[A-Z_]/u      no-unused-vars
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\components\ui\Button.jsx
+  5:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\components\ui\Card.jsx
+  5:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\context\I18nContext.jsx
+  68:14  error  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\pages\Configure.jsx
+    3:10  error    'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                           no-unused-vars
+   13:29  error    'useParams' is not defined                                                                              no-undef
+   14:28  error    'useSearchParams' is not defined                                                                        no-undef
+   87:8   warning  React Hook useEffect has a missing dependency: 'qty'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  125:11  error    'getBaseComponentPrice' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u   no-unused-vars
+  125:36  error    'componentName' is defined but never used                                                               no-unused-vars
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\pages\Contact.jsx
+  5:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\pages\DefaultConfig.jsx
+  7:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\pages\ExcelUpload.jsx
+  6:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\pages\ForgotPassword.jsx
+  7:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\pages\Home.jsx
+  5:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\pages\Invoice.jsx
+    7:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        no-unused-vars
+   72:11  error  'baseTotal' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            no-unused-vars
+  147:89  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  145 |                             <div>
+  146 |                                 <h1 className="text-4xl font-bold mb-2">INVOICE</h1>
+> 147 |                                 <p className="text-slate-400">#INV-{Math.floor(100000 + Math.random() * 900000)}</p>
+      |                                                                                         ^^^^^^^^^^^^^ Cannot call impure function
+  148 |                             </div>
+  149 |                             <div className="text-right">
+  150 |                                 <h2 className="text-2xl font-bold tracking-tight">V-CONF <span className="text-blue-400">Automotive</span></h2>  react-hooks/purity
+  185:81  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  183 |                                     <div className="flex justify-between md:justify-end gap-4">
+  184 |                                         <span className="text-slate-500">Valid Until:</span>
+> 185 |                                         <span className="font-medium">{new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}</span>
+      |                                                                                 ^^^^^^^^^^ Cannot call impure function
+  186 |                                     </div>
+  187 |                                 </div>
+  188 |                             </div>                                   react-hooks/purity
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\pages\Login.jsx
+   7:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  85:18  error  'err' is defined but never used                                                no-unused-vars
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\pages\ModifyConfig.jsx
+  7:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\pages\NotFound.jsx
+  6:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\pages\Register.jsx
+   6:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                    no-unused-vars
+  92:21  error  'confirmPassword' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\pages\Welcome.jsx
+  7:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\services\authService.js
+   9:9  error  Unnecessary try/catch wrapper  no-useless-catch
+  20:9  error  Unnecessary try/catch wrapper  no-useless-catch
+
+D:\Final Vehicle Configuration Java\v-conf-frontend\src\store\slices\authSlice.js
+  92:26  error  'e' is defined but never used  no-unused-vars
+
+✖ 33 problems (32 errors, 1 warning)
+

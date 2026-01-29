@@ -1,0 +1,23 @@
+# Node
+node_modules/
+dist/
+build/
+
+# Java / Maven
+target/
+*.class
+
+# IDE
+.vscode/
+.idea/
+.metadata/
+*.iml
+
+# OS
+Thumbs.db
+desktop.ini
+ntuser.dat*
+NTUSER.DAT*
+
+# Logs
+*.log
